@@ -7,7 +7,9 @@ public class CreateFieldScript
 {
     public struct FieldInfo
     {
-        public List<int> Masu;
+        public List<int> Floor;
+        public List<int> Gimick;
+        public List<int> Character;
         public int Height;
         public int Width;
     }
@@ -27,37 +29,39 @@ public class CreateFieldScript
             {
                 int i = y * fieldInfo.Width + x;
 
+                if (fieldInfo.Floor[i] == 12)
                 {
                     var gameObject = GameObject.Instantiate(yuka);
                     var scaleY = gameObject.transform.localScale.y;
-                    gameObject.transform.localPosition = new Vector3(x, -scaleY / 2, y);
+                    gameObject.transform.localPosition = new Vector3(x, -scaleY / 2, -y);
                     gameObject.transform.parent = fieldRoot.transform;
                 }
 
-                if (5 < fieldInfo.Masu[i] && fieldInfo.Masu[i] < 9)
+                if (fieldInfo.Gimick[i] == 3)
                 {
                     var gameObject = GameObject.Instantiate(wall);
                     var scaleY = gameObject.transform.localScale.y;
-                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, y);
+                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
                     gameObject.transform.parent = fieldRoot.transform;
                 }
-                else if (fieldInfo.Masu[i] == 9)
+
+                if (fieldInfo.Character[i] == 61)
                 {
                     var gameObject = GameObject.Instantiate(obake);
                     var scaleY = gameObject.transform.localScale.y;
-                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, y);
+                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
                     gameObject.transform.parent = fieldRoot.transform;
                 }
-                else if (fieldInfo.Masu[i] == 99)
+
+                if (fieldInfo.Gimick[i] == 57)
                 {
                     var gameObject = GameObject.Instantiate(player);
                     var scaleY = gameObject.transform.localScale.y;
-                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, y);
+                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
                     gameObject.transform.parent = fieldRoot.transform;
                 }
             }
         }
-
     }
 }
 }
