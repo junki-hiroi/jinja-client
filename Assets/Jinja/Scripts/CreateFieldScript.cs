@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Ghost.Scripts
+namespace Jinja.Scripts
 {
 public class CreateFieldScript
 {

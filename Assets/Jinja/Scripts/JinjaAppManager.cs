@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Ghost.Scripts
+namespace Jinja.Scripts
 {
-public class GhostAppManager : MonoBehaviour
+public class JinjaAppManager : MonoBehaviour
 {
     private GameObject cameraGameObject;
     private GameObject playerGameObject;
