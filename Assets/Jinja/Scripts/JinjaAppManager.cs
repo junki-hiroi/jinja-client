@@ -20,7 +20,9 @@ public class JinjaAppManager : MonoBehaviour
 
     private void Update()
     {
-        if (frameCount == 0)
+        bool isHide = Input.GetKey(KeyCode.Space);
+
+        if (frameCount == 0 && !isHide)
         {
             var dx = (int)Input.GetAxisRaw("Horizontal");
             var dy = (int)Input.GetAxisRaw("Vertical");
@@ -33,11 +35,25 @@ public class JinjaAppManager : MonoBehaviour
         }
         else
         {
-            frameCount--;
+            frameCount = Math.Max(0, --frameCount);
         }
 
-        cameraGameObject.transform.position = playerGameObject.transform.position + new Vector3(0, 10, -6);
-        cameraGameObject.transform.LookAt(playerGameObject.transform);
+        if (isHide)
+        {
+            playerGameObject.transform.position = new Vector3(
+                playerGameObject.transform.position.x,
+                -10,
+                playerGameObject.transform.position.z);
+        }
+        else
+        {
+            playerGameObject.transform.position = new Vector3(
+                playerGameObject.transform.position.x,
+                0,
+                playerGameObject.transform.position.z);
+            cameraGameObject.transform.position = playerGameObject.transform.position + new Vector3(0, 10, -6);
+            cameraGameObject.transform.LookAt(playerGameObject.transform);
+        }
     }
 }
 }
