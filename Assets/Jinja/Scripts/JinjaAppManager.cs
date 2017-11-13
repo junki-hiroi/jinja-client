@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Jinja.Scripts
 {
@@ -13,26 +11,7 @@ public class JinjaAppManager : MonoBehaviour
 
     private void Start ()
     {
-        CreateFieldScript.FieldInfo fieldInfo = new CreateFieldScript.FieldInfo();
-
-        fieldInfo.Masu = new List<int>();
-        fieldInfo.Height = 10;
-        fieldInfo.Width = 10;
-
-        var playerIndex = Random.Range(0, fieldInfo.Height * fieldInfo.Width);
-
-        for (int i = 0; i < fieldInfo.Height * fieldInfo.Width; i++)
-        {
-            var fieldProperty = Random.Range(0, 10);
-
-            if (i == playerIndex)
-            {
-                fieldProperty = 99;
-            }
-
-            fieldInfo.Masu.Add(fieldProperty);
-        }
-
+        CreateFieldScript.FieldInfo fieldInfo = ParseField.Load();
         CreateFieldScript.CreateField(fieldInfo);
 
         cameraGameObject = GameObject.FindWithTag("MainCamera");
@@ -49,7 +28,7 @@ public class JinjaAppManager : MonoBehaviour
             if (Math.Abs(dx) + Math.Abs(dy) == 1)
             {
                 playerGameObject.transform.Translate(dx, 0, dy);
-                frameCount = 20;
+                frameCount = 7;
             }
         }
         else
