@@ -8,9 +8,9 @@ namespace Jinja.Scripts
 {
 public static class ParseField
 {
-    public static CreateFieldScript.FieldInfo Load()
+    public static FieldInfo Load()
     {
-        CreateFieldScript.FieldInfo fieldInfo = new CreateFieldScript.FieldInfo();
+        FieldInfo fieldInfo = new FieldInfo();
 #if UNITY_EDITOR
         var jsonText = File.ReadAllText("OutOfUnity/MapData/ghost.json");
         var jsonData = MiniJSON.Json.Deserialize(jsonText);
@@ -35,11 +35,40 @@ public static class ParseField
 
                 if (name.Equals("floor"))
                 {
-                    fieldInfo.Floor = data.Select(o => int.Parse(o.ToString())).ToList();
+                    fieldInfo.Floor = data
+                                      .Select(o => int.Parse(o.ToString()))
+                                      .Select(o => o == 12 ? FieldInfo.FloorNormal : 0)
+                                      .ToList();
                 }
                 else if (name.Equals("object"))
                 {
-                    fieldInfo.Gimick = data.Select(o => int.Parse(o.ToString())).ToList();
+                    fieldInfo.Gimick = data
+                                       .Select(o => int.Parse(o.ToString()))
+                                       .Select(o =>
+                    {
+                        if (o == 3)
+                        {
+                            return FieldInfo.GimickWall;
+                        }
+
+                        if (o == 58)
+                        {
+                            return FieldInfo.GimickStep;
+                        }
+
+                        if (o == 57)
+                        {
+                            return FieldInfo.GimickPlayerStart;
+                        }
+
+                        if (o == 49)
+                        {
+                            return FieldInfo.GimickRedLock;
+                        }
+
+                        return 0;
+                    })
+                    .ToList();
                 }
                 else
                 {
