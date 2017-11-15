@@ -18,60 +18,83 @@ public class FieldInfo
     public List<int> Character;
     public int Height;
     public int Width;
+
+    public int GetPlayerStartIndex()
+    {
+        return Gimick.FindIndex(o => o == GimickPlayerStart);
+    }
+
+    public Vector2 IndexToVector2(int index)
+    {
+        int x = index % Width;
+        int y = index / Width;
+        return new Vector2(x, y);
+    }
+}
+
+public class PlayerInfo
+{
+    public Vector2 Position = Vector2.zero;
 }
 
 public class JinjaAppManager : MonoBehaviour
 {
-    private GameObject cameraGameObject;
-    private GameObject playerGameObject;
-    private int frameCount = 0;
-
-
+    private GameObject _cameraGameObject;
+    private GameObject _playerGameObject;
+    private int _frameCount = 0;
+    private PlayerInfo _playerInfo;
+    private FieldInfo _fieldInfo;
 
     private void Start ()
     {
-        FieldInfo fieldInfo = ParseField.Load();
-        CreateFieldScript.CreateField(fieldInfo);
+        _fieldInfo = ParseField.Load();
+        CreateFieldScript.CreateField(_fieldInfo);
 
-        cameraGameObject = GameObject.FindWithTag("MainCamera");
-        playerGameObject = GameObject.FindWithTag("Player");
+        _playerInfo = new PlayerInfo
+        {
+            Position = _fieldInfo.IndexToVector2(_fieldInfo.GetPlayerStartIndex())
+        };
+        _cameraGameObject = GameObject.FindWithTag("MainCamera");
+        _playerGameObject = GameObject.FindWithTag("Player");
     }
 
     private void Update()
     {
         bool isHide = Input.GetKey(KeyCode.Space);
 
-        if (frameCount == 0 && !isHide)
+        if (_frameCount == 0 && !isHide)
         {
             var dx = (int)Input.GetAxisRaw("Horizontal");
-            var dy = (int)Input.GetAxisRaw("Vertical");
+            var dy = -(int)Input.GetAxisRaw("Vertical");
 
             if (Math.Abs(dx) + Math.Abs(dy) == 1)
             {
-                playerGameObject.transform.Translate(dx, 0, dy);
-                frameCount = 7;
+                _playerInfo.Position = _playerInfo.Position + new Vector2(dx, dy);
+                _frameCount = 7;
             }
         }
         else
         {
-            frameCount = Math.Max(0, --frameCount);
+            _frameCount = Math.Max(0, --_frameCount);
         }
+
+
 
         if (isHide)
         {
-            playerGameObject.transform.position = new Vector3(
-                playerGameObject.transform.position.x,
+            _playerGameObject.transform.position = new Vector3(
+                _playerInfo.Position.x,
                 -10,
-                playerGameObject.transform.position.z);
+                -_playerInfo.Position.y);
         }
         else
         {
-            playerGameObject.transform.position = new Vector3(
-                playerGameObject.transform.position.x,
+            _playerGameObject.transform.position = new Vector3(
+                _playerInfo.Position.x,
                 0,
-                playerGameObject.transform.position.z);
-            cameraGameObject.transform.position = playerGameObject.transform.position + new Vector3(0, 10, -6);
-            cameraGameObject.transform.LookAt(playerGameObject.transform);
+                -_playerInfo.Position.y);
+            _cameraGameObject.transform.position = _playerGameObject.transform.position + new Vector3(0, 10, -6);
+            _cameraGameObject.transform.LookAt(_playerGameObject.transform);
         }
     }
 }
