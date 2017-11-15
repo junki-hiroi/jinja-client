@@ -24,17 +24,28 @@ public class FieldInfo
         return Gimick.FindIndex(o => o == GimickPlayerStart);
     }
 
-    public Vector2 IndexToVector2(int index)
+    public bool IsWall(int index)
+    {
+        return Gimick[index] == GimickWall;
+    }
+
+
+    public Vector2Int IndexToVector2(int index)
     {
         int x = index % Width;
         int y = index / Width;
-        return new Vector2(x, y);
+        return new Vector2Int(x, y);
+    }
+
+    public int Vector2ToIndex(Vector2Int vector2)
+    {
+        return vector2.y * Width + (int)vector2.x;
     }
 }
 
 public class PlayerInfo
 {
-    public Vector2 Position = Vector2.zero;
+    public Vector2Int Position;
 }
 
 public class JinjaAppManager : MonoBehaviour
@@ -65,12 +76,17 @@ public class JinjaAppManager : MonoBehaviour
         if (_frameCount == 0 && !isHide)
         {
             var dx = (int)Input.GetAxisRaw("Horizontal");
-            var dy = -(int)Input.GetAxisRaw("Vertical");
+            var dy = (int) - Input.GetAxisRaw("Vertical");
 
             if (Math.Abs(dx) + Math.Abs(dy) == 1)
             {
-                _playerInfo.Position = _playerInfo.Position + new Vector2(dx, dy);
-                _frameCount = 7;
+                var next = _playerInfo.Position + new Vector2Int(dx, dy);
+
+                if (!_fieldInfo.IsWall(_fieldInfo.Vector2ToIndex(next)))
+                {
+                    _playerInfo.Position = next;
+                    _frameCount = 7;
+                }
             }
         }
         else
