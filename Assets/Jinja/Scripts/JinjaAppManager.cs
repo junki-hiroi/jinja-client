@@ -1,17 +1,36 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Jinja.Scripts
 {
+public class FieldInfo
+{
+    public const int FloorNormal = 1;
+
+    public const int GimickWall = 1;
+    public const int GimickPlayerStart = 2;
+    public const int GimickStep = 3;
+    public const int GimickRedLock = 4;
+
+    public List<int> Floor;
+    public List<int> Gimick;
+    public List<int> Character;
+    public int Height;
+    public int Width;
+}
+
 public class JinjaAppManager : MonoBehaviour
 {
     private GameObject cameraGameObject;
     private GameObject playerGameObject;
     private int frameCount = 0;
 
+
+
     private void Start ()
     {
-        CreateFieldScript.FieldInfo fieldInfo = ParseField.Load();
+        FieldInfo fieldInfo = ParseField.Load();
         CreateFieldScript.CreateField(fieldInfo);
 
         cameraGameObject = GameObject.FindWithTag("MainCamera");
