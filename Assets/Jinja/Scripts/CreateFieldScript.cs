@@ -5,7 +5,7 @@ namespace Jinja.Scripts
 {
 public class CreateFieldScript
 {
-    public static void CreateField(FieldInfo fieldInfo)
+    public static List<CharacterInfo> CreateField(FieldInfo fieldInfo)
     {
         var obake = Resources.Load<GameObject>("Obake");
         var wall = Resources.Load<GameObject>("Wall");
@@ -15,6 +15,8 @@ public class CreateFieldScript
         var stepGameObject = Resources.Load<GameObject>("Step");
 
         var fieldRoot = new GameObject("FieldRoot");
+
+        var characters = new List<CharacterInfo>();
 
         for (int y = 0; y < fieldInfo.Height; y++)
         {
@@ -36,6 +38,12 @@ public class CreateFieldScript
                     var scaleY = gameObject.transform.localScale.y;
                     gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
                     gameObject.transform.parent = fieldRoot.transform;
+                    characters.Add(new CharacterInfo
+                    {
+                        Id = "obake" + i,
+                        CharacterGameObject = gameObject,
+                        Position = new Vector2Int(x, y)
+                    });
                 }
 
                 if (fieldInfo.Gimick[i] == FieldInfo.GimickWall)
@@ -52,6 +60,12 @@ public class CreateFieldScript
                     var scaleY = gameObject.transform.localScale.y;
                     gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
                     gameObject.transform.parent = fieldRoot.transform;
+                    characters.Add(new CharacterInfo
+                    {
+                        Id = "player",
+                        CharacterGameObject = gameObject,
+                        Position = new Vector2Int(x, y)
+                    });
                 }
 
                 if (fieldInfo.Gimick[i] == FieldInfo.GimickStep)
@@ -71,6 +85,8 @@ public class CreateFieldScript
                 }
             }
         }
+
+        return characters;
     }
 }
 }
