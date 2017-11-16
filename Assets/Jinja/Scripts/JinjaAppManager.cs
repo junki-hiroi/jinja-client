@@ -79,16 +79,16 @@ public class JinjaAppManager : MonoBehaviour
             button.transform.parent = canvas.transform;
             var rectTransform = button.AddComponent<RectTransform>();
             rectTransform.anchoredPosition3D = Vector3.zero;
-            rectTransform.sizeDelta = Vector2.one * 20;
+            rectTransform.sizeDelta = Vector2.zero;
 
             Vector2 centerPosition = new Vector2(0.70f, 0.5f) +
             new Vector2(
                 Mathf.Sin(i * 0.5f * Mathf.PI) * 0.15f,
-                Mathf.Cos(i * 0.5f * Mathf.PI) * 0.15f
+                Mathf.Cos(i * 0.5f * Mathf.PI) * 0.25f
             );
 
-            rectTransform.anchorMin = centerPosition;
-            rectTransform.anchorMax = centerPosition;
+            rectTransform.anchorMin = centerPosition - Vector2.one * 0.1f;
+            rectTransform.anchorMax = centerPosition + Vector2.one * 0.1f;
 
             button.AddComponent<CanvasRenderer>();
             var image = button.AddComponent<Image>();
