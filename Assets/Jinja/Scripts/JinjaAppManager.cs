@@ -51,7 +51,13 @@ public class PlayerInfo
 
 public class JinjaAppManager : MonoBehaviour
 {
-    private GameObject _cameraGameObject;
+    [Header("カメラ設定")]
+    [SerializeField, HeaderAttribute("プレイヤーとの位置関係")]
+    private Vector3 _cameraOffset = new Vector3(0, 10, -6);
+    [SerializeField, HeaderAttribute("カメラの画角")]
+    private float _cameraFieldOfView = 60.0f;
+
+    private Camera _mainCamera;
     private GameObject _playerGameObject;
     private int _frameCount = 0;
     private PlayerInfo _playerInfo;
@@ -67,7 +73,7 @@ public class JinjaAppManager : MonoBehaviour
         {
             Position = _fieldInfo.IndexToVector2(_fieldInfo.GetPlayerStartIndex())
         };
-        _cameraGameObject = GameObject.FindWithTag("MainCamera");
+        _mainCamera = GameObject.FindWithTag("MainCamera").GetComponent<Camera>();
         _playerGameObject = GameObject.FindWithTag("Player");
 
         var canvas = GameObject.Find("Canvas");
@@ -149,8 +155,10 @@ public class JinjaAppManager : MonoBehaviour
                 _playerInfo.Position.x,
                 0,
                 -_playerInfo.Position.y);
-            _cameraGameObject.transform.position = _playerGameObject.transform.position + new Vector3(0, 10, -6);
-            _cameraGameObject.transform.LookAt(_playerGameObject.transform);
+
+            _mainCamera.transform.position = _playerGameObject.transform.position + _cameraOffset;
+            _mainCamera.transform.LookAt(_playerGameObject.transform);
+            _mainCamera.fieldOfView = _cameraFieldOfView;
         }
     }
 }
