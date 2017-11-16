@@ -27,7 +27,8 @@ public class FieldInfo
 
     public bool IsWall(int index)
     {
-        return Gimick[index] == GimickWall;
+        return Gimick[index] == GimickWall ||
+               Gimick[index] == GimickRedLock; // いったん、扉も通れない。
     }
 
 
