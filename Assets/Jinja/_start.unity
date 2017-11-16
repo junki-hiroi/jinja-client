@@ -451,6 +451,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 854a5e841f91442f68c48b08c8f49e69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _cameraOffset: {x: 0, y: 10, z: -6}
+  _cameraFieldOfView: 45
 --- !u!1 &1991444701
 GameObject:
   m_ObjectHideFlags: 0
