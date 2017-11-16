@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Jinja.Scripts
 {
@@ -55,6 +56,7 @@ public class JinjaAppManager : MonoBehaviour
     private int _frameCount = 0;
     private PlayerInfo _playerInfo;
     private FieldInfo _fieldInfo;
+    private Func<bool>[] _buttonPressing;
 
     private void Start ()
     {
@@ -67,6 +69,39 @@ public class JinjaAppManager : MonoBehaviour
         };
         _cameraGameObject = GameObject.FindWithTag("MainCamera");
         _playerGameObject = GameObject.FindWithTag("Player");
+
+        var canvas = GameObject.Find("Canvas");
+        _buttonPressing = new Func<bool>[4];
+
+        for (int i = 0; i < 4; i++)
+        {
+            var button = new GameObject("button" + i);
+            button.transform.parent = canvas.transform;
+            var rectTransform = button.AddComponent<RectTransform>();
+            rectTransform.anchoredPosition3D = Vector3.zero;
+            rectTransform.sizeDelta = Vector2.one * 20;
+
+            Vector2 centerPosition = new Vector2(0.70f, 0.5f) +
+            new Vector2(
+                Mathf.Sin(i * 0.5f * Mathf.PI) * 0.15f,
+                Mathf.Cos(i * 0.5f * Mathf.PI) * 0.15f
+            );
+
+            rectTransform.anchorMin = centerPosition;
+            rectTransform.anchorMax = centerPosition;
+
+            button.AddComponent<CanvasRenderer>();
+            var image = button.AddComponent<Image>();
+#if UNITY_EDITOR
+            image.sprite = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+#else
+            image.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+#endif
+            image.type = Image.Type.Sliced;
+
+            var pressedButton = button.AddComponent<PressedButton>();
+            _buttonPressing[i] = () => pressedButton.IsPressed;
+        }
     }
 
     private void Update()
@@ -77,6 +112,11 @@ public class JinjaAppManager : MonoBehaviour
         {
             var dx = (int)Input.GetAxisRaw("Horizontal");
             var dy = (int) - Input.GetAxisRaw("Vertical");
+
+            dy = _buttonPressing[0]() ? -1 : dy;
+            dy = _buttonPressing[2]() ? 1 : dy;
+            dx = _buttonPressing[1]() ? 1 : dx;
+            dx = _buttonPressing[3]() ? -1 : dx;
 
             if (Math.Abs(dx) + Math.Abs(dy) == 1)
             {
