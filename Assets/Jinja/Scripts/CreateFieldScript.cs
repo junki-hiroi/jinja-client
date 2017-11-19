@@ -8,7 +8,7 @@ public class CreateFieldScript
     public static List<CharacterInfo> CreateField(FieldInfo fieldInfo)
     {
         var obake = Resources.Load<GameObject>("Obake");
-        var wall = Resources.Load<GameObject>("Wall");
+        var wall = Resources.Load<GameObject>("Prefabs/desk01");
         var yuka = Resources.Load<GameObject>("YukaBox");
         var player = Resources.Load<GameObject>("Player");
         var redLock = Resources.Load<GameObject>("LockRed");
