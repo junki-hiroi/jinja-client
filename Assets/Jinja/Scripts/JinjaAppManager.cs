@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Jinja.Scripts
@@ -30,6 +31,11 @@ public class FieldInfo
     {
         return Gimick[index] == GimickWall ||
                Gimick[index] == GimickRedLock; // いったん、扉も通れない。
+    }
+
+    public bool IsStep(int index)
+    {
+        return Gimick[index] == GimickStep;
     }
 
 
@@ -68,6 +74,8 @@ public class JinjaAppManager : MonoBehaviour
     private FieldInfo _fieldInfo;
     private Func<bool>[] _buttonPressing;
     private int _catchObakeCount = 0;
+    private int _stageCatchObakeCount = 0;
+
     private Action<string> _obakeCountUpdate;
     private List<CharacterInfo> _obakeInfos;
 
@@ -132,7 +140,7 @@ public class JinjaAppManager : MonoBehaviour
             var text = obakeCounter.AddComponent<Text>();
             text.font = Resources.Load<Font>("ipaexg");
             text.color = Color.red;
-            text.text = "捕まえたおばけの数:0";
+            text.text = "Start";
             _obakeCountUpdate = (s) => text.text = s;
         }
     }
@@ -172,7 +180,19 @@ public class JinjaAppManager : MonoBehaviour
                         }
                                               );
 
-                        _obakeCountUpdate(string.Format("捕まえたおばけの数:{0}", _catchObakeCount));
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
+                    }
+
+                    if (_fieldInfo.IsStep(_fieldInfo.Vector2ToIndex(next)))
+                    {
+                        _stageCatchObakeCount += _catchObakeCount;
+                        _catchObakeCount = 0;
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
+
+                        if (2 < _stageCatchObakeCount)
+                        {
+                            SceneManager.LoadSceneAsync(1, LoadSceneMode.Single);
+                        }
                     }
 
                     _frameCount = 7;
