@@ -8,3 +8,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Jinja/_start.unity
     guid: a205199ef61f543d7be5617dafa5078e
+  - enabled: 1
+    path: Assets/Jinja/_map_select.unity
+    guid: 8ef63ef9e96d04da6bf995d767eff9ad

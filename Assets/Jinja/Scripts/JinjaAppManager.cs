@@ -81,6 +81,8 @@ public class JinjaAppManager : MonoBehaviour
 
     private void Start ()
     {
+        JinjaSoundManager.Instance.PlayBgm("bgm");
+
         _fieldInfo = ParseField.Load();
         var characterInfos = CreateFieldScript.CreateField(_fieldInfo);
 
@@ -180,6 +182,7 @@ public class JinjaAppManager : MonoBehaviour
                         }
                                               );
 
+                        JinjaSoundManager.Instance.PlayOneShot("encount");
                         _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
                     }
 
