@@ -52,7 +52,7 @@ public class MapSelect : MonoBehaviour
 
         if (findIndex != -1)
         {
-            SceneManager.LoadSceneAsync(0, LoadSceneMode.Single);
+            JinjaSceneManager.Instanse.RequestLoadSceneAsync(JinjaSceneManager.Main, LoadSceneMode.Single);
         }
     }
 }

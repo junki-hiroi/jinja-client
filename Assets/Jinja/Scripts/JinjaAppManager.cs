@@ -191,7 +191,7 @@ public class JinjaAppManager : MonoBehaviour
 
                         if (2 < _stageCatchObakeCount)
                         {
-                            SceneManager.LoadSceneAsync(1, LoadSceneMode.Single);
+                            JinjaSceneManager.Instanse.RequestLoadSceneAsync(JinjaSceneManager.MapSelect, LoadSceneMode.Single);
                         }
                     }
 
