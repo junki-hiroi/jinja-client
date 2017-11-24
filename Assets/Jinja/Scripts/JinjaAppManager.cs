@@ -33,6 +33,21 @@ public class FieldInfo
                Gimick[index] == GimickRedLock; // いったん、扉も通れない。
     }
 
+    public bool IsLighting(int index)
+    {
+#if UNITY_EDITOR
+
+        if (UnityEditor.EditorPrefs.HasKey("_debugLighting"))
+        {
+            UnityEditor.EditorPrefs.DeleteKey("_debugLighting");
+            return true;
+        }
+
+#endif
+
+        return false;
+    }
+
     public bool IsStep(int index)
     {
         return Gimick[index] == GimickStep;
@@ -76,6 +91,7 @@ public class JinjaAppManager : MonoBehaviour
     private int _catchObakeCount = 0;
     private int _stageCatchObakeCount = 0;
 
+    private Vector2Int _playerResponePosition;
     private Action<string> _obakeCountUpdate;
     private List<CharacterInfo> _obakeInfos;
 
@@ -89,6 +105,7 @@ public class JinjaAppManager : MonoBehaviour
 
         var playerInfo = characterInfos.Find(o => o.Id.Equals("player"));
         _playerInfo = playerInfo;
+        _playerResponePosition = playerInfo.Position;
         characterInfos.Remove(playerInfo);
         _obakeInfos = characterInfos;
 
@@ -188,6 +205,7 @@ public class JinjaAppManager : MonoBehaviour
 
                     if (_fieldInfo.IsStep(_fieldInfo.Vector2ToIndex(next)))
                     {
+                        _playerResponePosition = _playerInfo.Position;
                         _stageCatchObakeCount += _catchObakeCount;
                         _catchObakeCount = 0;
                         _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
@@ -218,6 +236,11 @@ public class JinjaAppManager : MonoBehaviour
         }
         else
         {
+            if (_fieldInfo.IsLighting(_fieldInfo.Vector2ToIndex(_playerInfo.Position)))
+            {
+                _playerInfo.Position = _playerResponePosition;
+            }
+
             _playerGameObject.transform.position = new Vector3(
                 _playerInfo.Position.x,
                 0,

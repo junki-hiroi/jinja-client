@@ -56,16 +56,24 @@ public class CreateFieldScript
 
                 if (fieldInfo.Gimick[i] == FieldInfo.GimickPlayerStart)
                 {
-                    var gameObject = GameObject.Instantiate(player);
-                    var scaleY = gameObject.transform.localScale.y;
-                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
-                    gameObject.transform.parent = fieldRoot.transform;
-                    characters.Add(new CharacterInfo
                     {
-                        Id = "player",
-                        CharacterGameObject = gameObject,
-                        Position = new Vector2Int(x, y)
-                    });
+                        var gameObject = GameObject.Instantiate(player);
+                        var scaleY = gameObject.transform.localScale.y;
+                        gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
+                        gameObject.transform.parent = fieldRoot.transform;
+                        characters.Add(new CharacterInfo
+                        {
+                            Id = "player",
+                            CharacterGameObject = gameObject,
+                            Position = new Vector2Int(x, y)
+                        });
+                    }
+                    {
+                        var gameObject = GameObject.Instantiate(stepGameObject);
+                        var scaleY = gameObject.transform.localScale.y;
+                        gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
+                        gameObject.transform.parent = fieldRoot.transform;
+                    }
                 }
 
                 if (fieldInfo.Gimick[i] == FieldInfo.GimickStep)
