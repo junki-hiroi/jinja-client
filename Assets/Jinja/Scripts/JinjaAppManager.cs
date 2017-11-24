@@ -88,12 +88,13 @@ public class JinjaAppManager : MonoBehaviour
     private CharacterInfo _playerInfo;
     private FieldInfo _fieldInfo;
     private Func<bool>[] _buttonPressing;
-    private int _catchObakeCount = 0;
     private int _stageCatchObakeCount = 0;
 
     private Vector2Int _playerResponePosition;
     private Action<string> _obakeCountUpdate;
     private List<CharacterInfo> _obakeInfos;
+    // 一時的に捕まえたおばけの情報
+    private List<CharacterInfo> _tmpCatchedObake;
 
     private void Start ()
     {
@@ -162,6 +163,8 @@ public class JinjaAppManager : MonoBehaviour
             text.text = "Start";
             _obakeCountUpdate = (s) => text.text = s;
         }
+
+        _tmpCatchedObake = new List<CharacterInfo>();
     }
 
     private void Update()
@@ -186,30 +189,30 @@ public class JinjaAppManager : MonoBehaviour
                 {
                     _playerInfo.Position = next;
 
-                    var collisionObake = _obakeInfos.Where(o => o.Position == next).ToList();
+                    var collisionObake = _obakeInfos.Where(o => o.Position == next && o.CharacterGameObject.activeSelf).ToList();
 
                     if (collisionObake.Count != 0)
                     {
-                        _catchObakeCount += collisionObake.Count;
+                        _tmpCatchedObake.AddRange(collisionObake);
 
                         collisionObake.ForEach(o =>
                         {
-                            Destroy(o.CharacterGameObject);
-                            _obakeInfos.Remove(o);
+                            o.CharacterGameObject.SetActive(false);
                         }
                                               );
 
                         JinjaSoundManager.Instance.PlayOneShot("encount");
-                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
                     }
 
                     if (_fieldInfo.IsStep(_fieldInfo.Vector2ToIndex(next)))
                     {
                         _playerResponePosition = _playerInfo.Position;
-                        _stageCatchObakeCount += _catchObakeCount;
-                        _catchObakeCount = 0;
-                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
+                        _stageCatchObakeCount += _tmpCatchedObake.Count;
+                        _tmpCatchedObake.RemoveAll(o => true);
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
 
+                        // TODO: マップクリア判定修正. 現在、3以上捕まえたとき.
                         if (2 < _stageCatchObakeCount)
                         {
                             JinjaSceneManager.Instanse.RequestLoadSceneAsync(JinjaSceneManager.MapSelect, LoadSceneMode.Single);
@@ -239,6 +242,11 @@ public class JinjaAppManager : MonoBehaviour
             if (_fieldInfo.IsLighting(_fieldInfo.Vector2ToIndex(_playerInfo.Position)))
             {
                 _playerInfo.Position = _playerResponePosition;
+                _tmpCatchedObake.ForEach(o =>
+                                         o.CharacterGameObject.SetActive(true)
+                                        );
+                _tmpCatchedObake.RemoveAll(o => true);
+                _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
             }
 
             _playerGameObject.transform.position = new Vector3(
