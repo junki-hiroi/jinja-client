@@ -13,6 +13,7 @@ public class CreateFieldScript
         var player = Resources.Load<GameObject>("Player");
         var redLock = Resources.Load<GameObject>("LockRed");
         var stepGameObject = Resources.Load<GameObject>("Step");
+        var enemyPrefab = Resources.Load<GameObject>("enemy");
 
         var fieldRoot = new GameObject("FieldRoot");
 
@@ -56,16 +57,36 @@ public class CreateFieldScript
 
                 if (fieldInfo.Gimick[i] == FieldInfo.GimickPlayerStart)
                 {
-                    var gameObject = GameObject.Instantiate(player);
-                    var scaleY = gameObject.transform.localScale.y;
-                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
-                    gameObject.transform.parent = fieldRoot.transform;
-                    characters.Add(new CharacterInfo
                     {
-                        Id = "player",
-                        CharacterGameObject = gameObject,
-                        Position = new Vector2Int(x, y)
-                    });
+                        var gameObject = GameObject.Instantiate(player);
+                        var scaleY = gameObject.transform.localScale.y;
+                        gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
+                        gameObject.transform.parent = fieldRoot.transform;
+                        characters.Add(new CharacterInfo
+                        {
+                            Id = "player",
+                            CharacterGameObject = gameObject,
+                            Position = new Vector2Int(x, y)
+                        });
+                    }
+                    {
+                        var gameObject = GameObject.Instantiate(stepGameObject);
+                        var scaleY = gameObject.transform.localScale.y;
+                        gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
+                        gameObject.transform.parent = fieldRoot.transform;
+                    }
+
+                    {
+                        // TODO: 敵の配置
+                        var gameObject = GameObject.Instantiate(enemyPrefab);
+                        gameObject.transform.parent = fieldRoot.transform;
+                        characters.Add(new CharacterInfo
+                        {
+                            Id = "enemy" + i,
+                            CharacterGameObject = gameObject,
+                            Position = new Vector2Int(x - 1, y + 5)
+                        });
+                    }
                 }
 
                 if (fieldInfo.Gimick[i] == FieldInfo.GimickStep)

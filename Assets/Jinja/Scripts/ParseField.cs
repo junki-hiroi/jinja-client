@@ -14,7 +14,6 @@ public static class ParseField
 #if UNITY_EDITOR
         var jsonText = File.ReadAllText("OutOfUnity/MapData/ghost.json");
         var jsonData = MiniJSON.Json.Deserialize(jsonText);
-        Debug.Log(jsonData);
 
         try
         {
@@ -27,11 +26,8 @@ public static class ParseField
 
             foreach (var layer in layers)
             {
-                Debug.Log(layer);
                 var data = (List<object>)layer.TryGet("data");
-                Debug.Log(data);
                 var name = (string)layer.TryGet("name");
-                Debug.Log(name);
 
                 if (name.Equals("floor"))
                 {

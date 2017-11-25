@@ -54,9 +54,158 @@ public class FieldInfo
 
 public class CharacterInfo
 {
+    public const int DirectionUp = 0;
+    public const int DirectionRight = 1;
+    public const int DirectionDown = 2;
+    public const int DirectionLeft = 3;
+
     public string Id;
     public Vector2Int Position;
     public GameObject CharacterGameObject;
+    public int Direction = 0;
+}
+
+public class EnemyInfo : CharacterInfo
+{
+    private static readonly Dictionary<int, Vector2Int> MoveDefine = new Dictionary<int, Vector2Int>()
+    {
+        {1, Vector2Int.down},
+        {2, Vector2Int.right},
+        {3, Vector2Int.up},
+        {4, Vector2Int.left},
+        {0, Vector2Int.zero},
+    };
+
+    private static readonly Dictionary<int, int> MoveDirectionDefine = new Dictionary<int, int>()
+    {
+        {1, DirectionUp},
+        {2, DirectionRight},
+        {3, DirectionDown},
+        {4, DirectionLeft},
+    };
+
+    public Vector2Int StartPosition;
+    public List<int> AutoMove = new List<int>()
+    {
+        0, 1, 2, 0, 3, 4,
+    };
+
+    private int _frameCount = 12;
+    private int _counter;
+
+    public EnemyInfo(CharacterInfo characterInfo)
+    {
+        Id = characterInfo.Id;
+        Position = characterInfo.Position;
+        CharacterGameObject = characterInfo.CharacterGameObject;
+        StartPosition = characterInfo.Position;
+        _frameCount = 12;
+        _counter = 0;
+    }
+
+    public void EnemyInit()
+    {
+        Position = StartPosition;
+        _frameCount = 12;
+        _counter = 0;
+    }
+
+    public void EnemyUpdate()
+    {
+        if (_frameCount != 0)
+        {
+            _frameCount = _frameCount - 1;
+            return;
+        }
+
+        _frameCount = 12;
+        _counter = (_counter + 1) % AutoMove.Count;
+        Position = Position + MoveDefine[AutoMove[_counter]];
+
+        if (AutoMove[_counter] != 0)
+        {
+            Direction = MoveDirectionDefine[AutoMove[_counter]];
+        }
+    }
+
+    public bool InLightingArea(Vector2Int targetPosition)
+    {
+#if UNITY_EDITOR
+
+        if (UnityEditor.EditorPrefs.HasKey("_debugLighting"))
+        {
+            UnityEditor.EditorPrefs.DeleteKey("_debugLighting");
+            return true;
+        }
+
+#endif
+
+        if (3 < Vector2Int.Distance(Position, targetPosition))
+        {
+            return false;
+        }
+
+        if (Direction == DirectionUp)
+        {
+            if (targetPosition.x != Position.x)
+            {
+                return false;
+            }
+
+            if (InRange(Position.y, targetPosition.y, Position.y - 3))
+            {
+                return true;
+            }
+        }
+
+        if (Direction == DirectionDown)
+        {
+            if (targetPosition.x != Position.x)
+            {
+                return false;
+            }
+
+            if (InRange(Position.y, targetPosition.y, Position.y + 3))
+            {
+                return true;
+            }
+        }
+
+        if (Direction == DirectionRight)
+        {
+            if (targetPosition.y != Position.y)
+            {
+                return false;
+            }
+
+            if (InRange(Position.x, targetPosition.x, Position.x + 3))
+            {
+                return true;
+            }
+        }
+
+        if (Direction == DirectionLeft)
+        {
+            if (targetPosition.y != Position.y)
+            {
+                return false;
+            }
+
+            if (InRange(Position.x, targetPosition.x, Position.x - 3))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool InRange(int a, int target, int b)
+    {
+        int min = Math.Min(a, b);
+        int max = Math.Max(a, b);
+        return min <= target && target <= max;
+    }
 }
 
 public class JinjaAppManager : MonoBehaviour
@@ -73,11 +222,14 @@ public class JinjaAppManager : MonoBehaviour
     private CharacterInfo _playerInfo;
     private FieldInfo _fieldInfo;
     private Func<bool>[] _buttonPressing;
-    private int _catchObakeCount = 0;
     private int _stageCatchObakeCount = 0;
 
+    private Vector2Int _playerResponePosition;
     private Action<string> _obakeCountUpdate;
     private List<CharacterInfo> _obakeInfos;
+    // 一時的に捕まえたおばけの情報
+    private List<CharacterInfo> _tmpCatchedObake;
+    private List<EnemyInfo> _enemyInfos;
 
     private void Start ()
     {
@@ -89,7 +241,14 @@ public class JinjaAppManager : MonoBehaviour
 
         var playerInfo = characterInfos.Find(o => o.Id.Equals("player"));
         _playerInfo = playerInfo;
+        _playerResponePosition = playerInfo.Position;
         characterInfos.Remove(playerInfo);
+
+        var enemyInfos = characterInfos.Where(o => o.Id.Contains("enemy")).ToList();
+        _enemyInfos = enemyInfos.Select(o => new EnemyInfo(o)).ToList();
+        Debug.Log(_enemyInfos.Count);
+        enemyInfos.ForEach(o => characterInfos.Remove(o));
+
         _obakeInfos = characterInfos;
 
         _mainCamera = GameObject.FindWithTag("MainCamera").GetComponent<Camera>();
@@ -145,6 +304,8 @@ public class JinjaAppManager : MonoBehaviour
             text.text = "Start";
             _obakeCountUpdate = (s) => text.text = s;
         }
+
+        _tmpCatchedObake = new List<CharacterInfo>();
     }
 
     private void Update()
@@ -169,29 +330,30 @@ public class JinjaAppManager : MonoBehaviour
                 {
                     _playerInfo.Position = next;
 
-                    var collisionObake = _obakeInfos.Where(o => o.Position == next).ToList();
+                    var collisionObake = _obakeInfos.Where(o => o.Position == next && o.CharacterGameObject.activeSelf).ToList();
 
                     if (collisionObake.Count != 0)
                     {
-                        _catchObakeCount += collisionObake.Count;
+                        _tmpCatchedObake.AddRange(collisionObake);
 
                         collisionObake.ForEach(o =>
                         {
-                            Destroy(o.CharacterGameObject);
-                            _obakeInfos.Remove(o);
+                            o.CharacterGameObject.SetActive(false);
                         }
                                               );
 
                         JinjaSoundManager.Instance.PlayOneShot("encount");
-                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
                     }
 
                     if (_fieldInfo.IsStep(_fieldInfo.Vector2ToIndex(next)))
                     {
-                        _stageCatchObakeCount += _catchObakeCount;
-                        _catchObakeCount = 0;
-                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _catchObakeCount, _stageCatchObakeCount));
+                        _playerResponePosition = _playerInfo.Position;
+                        _stageCatchObakeCount += _tmpCatchedObake.Count;
+                        _tmpCatchedObake.RemoveAll(o => true);
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
 
+                        // TODO: マップクリア判定修正. 現在、3以上捕まえたとき.
                         if (2 < _stageCatchObakeCount)
                         {
                             JinjaSceneManager.Instanse.RequestLoadSceneAsync(JinjaSceneManager.MapSelect, LoadSceneMode.Single);
@@ -207,7 +369,18 @@ public class JinjaAppManager : MonoBehaviour
             _frameCount = Math.Max(0, --_frameCount);
         }
 
+        _enemyInfos.ForEach(o =>
+        {
+            o.EnemyUpdate();
+            o.CharacterGameObject.transform.position = new Vector3(
+                o.Position.x,
+                0.5f,
+                -o.Position.y
+            );
+            o.CharacterGameObject.transform.localRotation = Quaternion.Euler(0, o.Direction * 90, 0);
+        });
 
+        var isInLightingArea = _enemyInfos.Any(o => o.InLightingArea(_playerInfo.Position));
 
         if (isHide)
         {
@@ -218,6 +391,17 @@ public class JinjaAppManager : MonoBehaviour
         }
         else
         {
+            if (isInLightingArea)
+            {
+                _playerInfo.Position = _playerResponePosition;
+                _tmpCatchedObake.ForEach(o =>
+                                         o.CharacterGameObject.SetActive(true)
+                                        );
+                _tmpCatchedObake.RemoveAll(o => true);
+                _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
+                _enemyInfos.ForEach(o => o.EnemyInit());
+            }
+
             _playerGameObject.transform.position = new Vector3(
                 _playerInfo.Position.x,
                 0,
