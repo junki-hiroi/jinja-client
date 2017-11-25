@@ -54,20 +54,34 @@ public class FieldInfo
 
 public class CharacterInfo
 {
+    public const int DirectionUp = 0;
+    public const int DirectionRight = 1;
+    public const int DirectionDown = 2;
+    public const int DirectionLeft = 3;
+
     public string Id;
     public Vector2Int Position;
     public GameObject CharacterGameObject;
+    public int Direction = 0;
 }
 
 public class EnemyInfo : CharacterInfo
 {
-    private static Dictionary<int, Vector2Int> MoveDefine = new Dictionary<int, Vector2Int>()
+    private static readonly Dictionary<int, Vector2Int> MoveDefine = new Dictionary<int, Vector2Int>()
     {
-        {1, Vector2Int.up},
+        {1, Vector2Int.down},
         {2, Vector2Int.right},
-        {3, Vector2Int.down},
+        {3, Vector2Int.up},
         {4, Vector2Int.left},
         {0, Vector2Int.zero},
+    };
+
+    private static readonly Dictionary<int, int> MoveDirectionDefine = new Dictionary<int, int>()
+    {
+        {1, DirectionUp},
+        {2, DirectionRight},
+        {3, DirectionDown},
+        {4, DirectionLeft},
     };
 
     public Vector2Int StartPosition;
@@ -107,6 +121,11 @@ public class EnemyInfo : CharacterInfo
         _frameCount = 12;
         _counter = (_counter + 1) % AutoMove.Count;
         Position = Position + MoveDefine[AutoMove[_counter]];
+
+        if (AutoMove[_counter] != 0)
+        {
+            Direction = MoveDirectionDefine[AutoMove[_counter]];
+        }
     }
 
     public bool InLightingArea(Vector2Int targetPosition)
@@ -120,7 +139,72 @@ public class EnemyInfo : CharacterInfo
         }
 
 #endif
+
+        if (3 < Vector2Int.Distance(Position, targetPosition))
+        {
+            return false;
+        }
+
+        if (Direction == DirectionUp)
+        {
+            if (targetPosition.x != Position.x)
+            {
+                return false;
+            }
+
+            if (InRange(Position.y, targetPosition.y, Position.y - 3))
+            {
+                return true;
+            }
+        }
+
+        if (Direction == DirectionDown)
+        {
+            if (targetPosition.x != Position.x)
+            {
+                return false;
+            }
+
+            if (InRange(Position.y, targetPosition.y, Position.y + 3))
+            {
+                return true;
+            }
+        }
+
+        if (Direction == DirectionRight)
+        {
+            if (targetPosition.y != Position.y)
+            {
+                return false;
+            }
+
+            if (InRange(Position.x, targetPosition.x, Position.x + 3))
+            {
+                return true;
+            }
+        }
+
+        if (Direction == DirectionLeft)
+        {
+            if (targetPosition.y != Position.y)
+            {
+                return false;
+            }
+
+            if (InRange(Position.x, targetPosition.x, Position.x - 3))
+            {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    public static bool InRange(int a, int target, int b)
+    {
+        int min = Math.Min(a, b);
+        int max = Math.Max(a, b);
+        return min <= target && target <= max;
     }
 }
 
@@ -293,6 +377,7 @@ public class JinjaAppManager : MonoBehaviour
                 0.5f,
                 -o.Position.y
             );
+            o.CharacterGameObject.transform.localRotation = Quaternion.Euler(0, o.Direction * 90, 0);
         });
 
         var isInLightingArea = _enemyInfos.Any(o => o.InLightingArea(_playerInfo.Position));
