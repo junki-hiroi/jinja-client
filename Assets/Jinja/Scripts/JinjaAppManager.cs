@@ -74,6 +74,57 @@ public class CharacterInfo
     public GameObject CharacterGameObject;
 }
 
+public class EnemyInfo : CharacterInfo
+{
+    private static Dictionary<int, Vector2Int> MoveDefine = new Dictionary<int, Vector2Int>()
+    {
+        {1, Vector2Int.up},
+        {2, Vector2Int.right},
+        {3, Vector2Int.down},
+        {4, Vector2Int.left},
+        {0, Vector2Int.zero},
+    };
+
+    public Vector2Int StartPosition;
+    public List<int> AutoMove = new List<int>()
+    {
+        0, 1, 2, 0, 3, 4,
+    };
+
+    private int _frameCount = 12;
+    private int _counter;
+
+    public EnemyInfo(CharacterInfo characterInfo)
+    {
+        Id = characterInfo.Id;
+        Position = characterInfo.Position;
+        CharacterGameObject = characterInfo.CharacterGameObject;
+        StartPosition = characterInfo.Position;
+        _frameCount = 12;
+        _counter = 0;
+    }
+
+    public void EnemyInit()
+    {
+        Position = StartPosition;
+        _frameCount = 12;
+        _counter = 0;
+    }
+
+    public void EnemyUpdate()
+    {
+        if (_frameCount != 0)
+        {
+            _frameCount = _frameCount - 1;
+            return;
+        }
+
+        _frameCount = 12;
+        _counter = (_counter + 1) % AutoMove.Count;
+        Position = Position + MoveDefine[AutoMove[_counter]];
+    }
+}
+
 public class JinjaAppManager : MonoBehaviour
 {
     [Header("カメラ設定")]
@@ -95,6 +146,7 @@ public class JinjaAppManager : MonoBehaviour
     private List<CharacterInfo> _obakeInfos;
     // 一時的に捕まえたおばけの情報
     private List<CharacterInfo> _tmpCatchedObake;
+    private List<EnemyInfo> _enemyInfos;
 
     private void Start ()
     {
@@ -108,6 +160,12 @@ public class JinjaAppManager : MonoBehaviour
         _playerInfo = playerInfo;
         _playerResponePosition = playerInfo.Position;
         characterInfos.Remove(playerInfo);
+
+        var enemyInfos = characterInfos.Where(o => o.Id.Contains("enemy")).ToList();
+        _enemyInfos = enemyInfos.Select(o => new EnemyInfo(o)).ToList();
+        Debug.Log(_enemyInfos.Count);
+        enemyInfos.ForEach(o => characterInfos.Remove(o));
+
         _obakeInfos = characterInfos;
 
         _mainCamera = GameObject.FindWithTag("MainCamera").GetComponent<Camera>();
@@ -228,6 +286,15 @@ public class JinjaAppManager : MonoBehaviour
             _frameCount = Math.Max(0, --_frameCount);
         }
 
+        _enemyInfos.ForEach(o =>
+        {
+            o.EnemyUpdate();
+            o.CharacterGameObject.transform.position = new Vector3(
+                o.Position.x,
+                0.5f,
+                -o.Position.y
+            );
+        });
 
 
         if (isHide)
@@ -247,6 +314,7 @@ public class JinjaAppManager : MonoBehaviour
                                         );
                 _tmpCatchedObake.RemoveAll(o => true);
                 _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
+                _enemyInfos.ForEach(o => o.EnemyInit());
             }
 
             _playerGameObject.transform.position = new Vector3(
