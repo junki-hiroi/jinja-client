@@ -33,21 +33,6 @@ public class FieldInfo
                Gimick[index] == GimickRedLock; // いったん、扉も通れない。
     }
 
-    public bool IsLighting(int index)
-    {
-#if UNITY_EDITOR
-
-        if (UnityEditor.EditorPrefs.HasKey("_debugLighting"))
-        {
-            UnityEditor.EditorPrefs.DeleteKey("_debugLighting");
-            return true;
-        }
-
-#endif
-
-        return false;
-    }
-
     public bool IsStep(int index)
     {
         return Gimick[index] == GimickStep;
@@ -122,6 +107,20 @@ public class EnemyInfo : CharacterInfo
         _frameCount = 12;
         _counter = (_counter + 1) % AutoMove.Count;
         Position = Position + MoveDefine[AutoMove[_counter]];
+    }
+
+    public bool InLightingArea(Vector2Int targetPosition)
+    {
+#if UNITY_EDITOR
+
+        if (UnityEditor.EditorPrefs.HasKey("_debugLighting"))
+        {
+            UnityEditor.EditorPrefs.DeleteKey("_debugLighting");
+            return true;
+        }
+
+#endif
+        return false;
     }
 }
 
@@ -296,6 +295,7 @@ public class JinjaAppManager : MonoBehaviour
             );
         });
 
+        var isInLightingArea = _enemyInfos.Any(o => o.InLightingArea(_playerInfo.Position));
 
         if (isHide)
         {
@@ -306,7 +306,7 @@ public class JinjaAppManager : MonoBehaviour
         }
         else
         {
-            if (_fieldInfo.IsLighting(_fieldInfo.Vector2ToIndex(_playerInfo.Position)))
+            if (isInLightingArea)
             {
                 _playerInfo.Position = _playerResponePosition;
                 _tmpCatchedObake.ForEach(o =>
