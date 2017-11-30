@@ -35,7 +35,8 @@ public class FieldInfo
 
     public bool IsStep(int index)
     {
-        return Gimick[index] == GimickStep;
+        return Gimick[index] == GimickStep ||
+               Gimick[index] == GimickPlayerStart; // いったん、プレイヤーのスタート地点も階段。
     }
 
 
@@ -219,6 +220,8 @@ public class JinjaAppManager : MonoBehaviour
     private Camera _mainCamera;
     private GameObject _playerGameObject;
     private int _frameCount = 0;
+    private int _playerHideTime = 0;
+    const int PlayerMaxHideTime = 200;
     private CharacterInfo _playerInfo;
     private FieldInfo _fieldInfo;
     private Func<bool>[] _buttonPressing;
@@ -226,6 +229,7 @@ public class JinjaAppManager : MonoBehaviour
 
     private Vector2Int _playerResponePosition;
     private Action<string> _obakeCountUpdate;
+    private Action<string> _hideTimeUpdate;
     private List<CharacterInfo> _obakeInfos;
     // 一時的に捕まえたおばけの情報
     private List<CharacterInfo> _tmpCatchedObake;
@@ -255,7 +259,7 @@ public class JinjaAppManager : MonoBehaviour
         _playerGameObject = _playerInfo.CharacterGameObject;
 
         var canvas = GameObject.Find("Canvas");
-        _buttonPressing = new Func<bool>[4];
+        _buttonPressing = new Func<bool>[5];
 
         for (int i = 0; i < 4; i++)
         {
@@ -265,7 +269,7 @@ public class JinjaAppManager : MonoBehaviour
             rectTransform.anchoredPosition3D = Vector3.zero;
             rectTransform.sizeDelta = Vector2.zero;
 
-            Vector2 centerPosition = new Vector2(0.70f, 0.5f) +
+            Vector2 centerPosition = new Vector2(0.7f, 0.5f) +
             new Vector2(
                 Mathf.Sin(i * 0.5f * Mathf.PI) * 0.15f,
                 Mathf.Cos(i * 0.5f * Mathf.PI) * 0.25f
@@ -273,6 +277,7 @@ public class JinjaAppManager : MonoBehaviour
 
             rectTransform.anchorMin = centerPosition - Vector2.one * 0.1f;
             rectTransform.anchorMax = centerPosition + Vector2.one * 0.1f;
+            rectTransform.localScale = Vector3.one;
 
             button.AddComponent<CanvasRenderer>();
             var image = button.AddComponent<Image>();
@@ -288,33 +293,126 @@ public class JinjaAppManager : MonoBehaviour
         }
 
         {
+            var button = new GameObject("button" + "Hide");
+            button.transform.parent = canvas.transform;
+            var rectTransform = button.AddComponent<RectTransform>();
+            rectTransform.anchoredPosition3D = Vector3.zero;
+            rectTransform.sizeDelta = Vector2.zero;
+
+            Vector2 centerPosition = new Vector2(0.9f, 0.1f);
+
+            rectTransform.anchorMin = centerPosition - Vector2.one * 0.1f;
+            rectTransform.anchorMax = centerPosition + Vector2.one * 0.1f;
+            rectTransform.localScale = Vector3.one;
+
+            button.AddComponent<CanvasRenderer>();
+            var image = button.AddComponent<Image>();
+#if UNITY_EDITOR
+            image.sprite = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+#else
+            image.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+#endif
+            image.type = Image.Type.Sliced;
+
+            var pressedButton = button.AddComponent<PressedButton>();
+            _buttonPressing[4] = () => pressedButton.IsPressed;
+
+        }
+
+        {
             var obakeCounter = new GameObject("obake_counter");
             obakeCounter.transform.parent = canvas.transform;
             var rectTransform = obakeCounter.AddComponent<RectTransform>();
             rectTransform.anchoredPosition3D = Vector3.zero;
             rectTransform.sizeDelta = Vector2.zero;
 
-            Vector2 centerPosition = new Vector2(0.25f, 0.20f);
+            Vector2 centerPosition = new Vector2(0.2f, 0.20f);
             rectTransform.anchorMin = centerPosition - Vector2.one * 0.2f;
             rectTransform.anchorMax = centerPosition + Vector2.one * 0.2f;
+            rectTransform.localScale = Vector3.one;
             obakeCounter.AddComponent<CanvasRenderer>();
             var text = obakeCounter.AddComponent<Text>();
+            text.alignment = TextAnchor.MiddleRight;
             text.font = Resources.Load<Font>("ipaexg");
             text.color = Color.red;
             text.text = "Start";
+            text.raycastTarget = false;
             _obakeCountUpdate = (s) => text.text = s;
         }
 
+        {
+            var hideTimeObject = new GameObject("hide_time");
+            hideTimeObject.transform.parent = canvas.transform;
+            var rectTransform = hideTimeObject.AddComponent<RectTransform>();
+            rectTransform.anchoredPosition3D = Vector3.zero;
+            rectTransform.sizeDelta = Vector2.zero;
+
+            Vector2 centerPosition = new Vector2(0.20f, 0.60f);
+            rectTransform.anchorMin = centerPosition - Vector2.one * 0.2f;
+            rectTransform.anchorMax = centerPosition + Vector2.one * 0.2f;
+            rectTransform.localScale = Vector3.one;
+            hideTimeObject.AddComponent<CanvasRenderer>();
+            var text = hideTimeObject.AddComponent<Text>();
+            text.alignment = TextAnchor.MiddleRight;
+            text.font = Resources.Load<Font>("ipaexg");
+            text.color = Color.red;
+            text.text = "Start";
+            text.raycastTarget = false;
+            _hideTimeUpdate = (s) => text.text = s;
+        }
+
+
         _tmpCatchedObake = new List<CharacterInfo>();
+    }
+
+    /// <summary>
+    ///   Limit a value to a certain range. When the value is smaller/bigger than the range, snap it to the range border.
+    /// </summary>
+    /// <typeparam name = "T">The type of the value to limit.</typeparam>
+    /// <param name = "source">The source for this extension method.</param>
+    /// <param name = "start">The start of the interval, included in the interval.</param>
+    /// <param name = "end">The end of the interval, included in the interval.</param>
+    private static T Clamp<T>(T source, T start, T end )
+    where T : IComparable
+    {
+        bool isReversed = start.CompareTo( end ) > 0;
+        T smallest = isReversed ? end : start;
+        T biggest = isReversed ? start : end;
+
+        return source.CompareTo( smallest ) < 0
+               ? smallest
+               : source.CompareTo( biggest ) > 0
+               ? biggest
+               : source;
     }
 
     private void Update()
     {
         bool isHide = Input.GetKey(KeyCode.Space);
+        isHide = isHide ||  _buttonPressing[4]();
+
+        if (isHide)
+        {
+            _playerHideTime = _playerHideTime + 1;
+        }
+        else
+        {
+            _playerHideTime = _playerHideTime - 1;
+        }
+
+        _playerHideTime = Clamp(_playerHideTime, 0, PlayerMaxHideTime);
+
+        if (_playerHideTime == PlayerMaxHideTime)
+        {
+            isHide = false;
+        }
+
+        _hideTimeUpdate(string.Format("{0} / {1}", _playerHideTime, PlayerMaxHideTime));
+
 
         if (_frameCount == 0 && !isHide)
         {
-            var dx = (int)Input.GetAxisRaw("Horizontal");
+            var dx = (int) Input.GetAxisRaw("Horizontal");
             var dy = (int) - Input.GetAxisRaw("Vertical");
 
             dy = _buttonPressing[0]() ? -1 : dy;
@@ -330,7 +428,8 @@ public class JinjaAppManager : MonoBehaviour
                 {
                     _playerInfo.Position = next;
 
-                    var collisionObake = _obakeInfos.Where(o => o.Position == next && o.CharacterGameObject.activeSelf).ToList();
+                    var collisionObake = _obakeInfos.Where(o => o.Position == next && o.CharacterGameObject.activeSelf)
+                                         .ToList();
 
                     if (collisionObake.Count != 0)
                     {
@@ -343,7 +442,8 @@ public class JinjaAppManager : MonoBehaviour
                                               );
 
                         JinjaSoundManager.Instance.PlayOneShot("encount");
-                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count,
+                                                        _stageCatchObakeCount));
                     }
 
                     if (_fieldInfo.IsStep(_fieldInfo.Vector2ToIndex(next)))
@@ -351,12 +451,14 @@ public class JinjaAppManager : MonoBehaviour
                         _playerResponePosition = _playerInfo.Position;
                         _stageCatchObakeCount += _tmpCatchedObake.Count;
                         _tmpCatchedObake.RemoveAll(o => true);
-                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count, _stageCatchObakeCount));
+                        _obakeCountUpdate(string.Format("捕えた {0}/ 送った {1}", _tmpCatchedObake.Count,
+                                                        _stageCatchObakeCount));
 
                         // TODO: マップクリア判定修正. 現在、3以上捕まえたとき.
                         if (2 < _stageCatchObakeCount)
                         {
-                            JinjaSceneManager.Instanse.RequestLoadSceneAsync(JinjaSceneManager.MapSelect, LoadSceneMode.Single);
+                            JinjaSceneManager.Instanse.RequestLoadSceneAsync(JinjaSceneManager.MapSelect,
+                                    LoadSceneMode.Single);
                         }
                     }
 
@@ -364,10 +466,8 @@ public class JinjaAppManager : MonoBehaviour
                 }
             }
         }
-        else
-        {
-            _frameCount = Math.Max(0, --_frameCount);
-        }
+
+        _frameCount = Math.Max(0, --_frameCount);
 
         _enemyInfos.ForEach(o =>
         {
