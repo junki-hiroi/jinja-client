@@ -35,7 +35,8 @@ public class FieldInfo
 
     public bool IsStep(int index)
     {
-        return Gimick[index] == GimickStep;
+        return Gimick[index] == GimickStep ||
+               Gimick[index] == GimickPlayerStart; // いったん、プレイヤーのスタート地点も階段。
     }
 
 
