@@ -13,9 +13,9 @@ public class MapSelect : MonoBehaviour
     {
         var canvas = GameObject.Find("Canvas");
         canvas.GetComponent<RectTransform>().localScale = Vector3.one;
-        _buttonPressing = new Func<bool>[3];
+        _buttonPressing = new Func<bool>[2];
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 2; i++)
         {
             var button = new GameObject("button" + i);
             button.transform.parent = canvas.transform;
@@ -52,6 +52,15 @@ public class MapSelect : MonoBehaviour
 
         if (findIndex != -1)
         {
+            if (findIndex == 0)
+            {
+                ParseField.LoadPath = "OutOfUnity/MapData/stage1.json";
+            }
+            else
+            {
+                ParseField.LoadPath = "OutOfUnity/MapData/stage2.json";
+            }
+
             JinjaSceneManager.Instanse.RequestLoadSceneAsync(JinjaSceneManager.Main, LoadSceneMode.Single);
         }
     }

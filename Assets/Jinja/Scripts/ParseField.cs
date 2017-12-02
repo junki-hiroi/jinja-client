@@ -8,11 +8,13 @@ namespace Jinja.Scripts
 {
 public static class ParseField
 {
+    public static string LoadPath = "OutOfUnity/MapData/stage1.json";
+
     public static FieldInfo Load()
     {
         FieldInfo fieldInfo = new FieldInfo();
-#if UNITY_EDITOR
-        var jsonText = File.ReadAllText("OutOfUnity/MapData/ghost.json");
+
+        var jsonText = File.ReadAllText(LoadPath);
         var jsonData = MiniJSON.Json.Deserialize(jsonText);
 
         try
@@ -29,11 +31,11 @@ public static class ParseField
                 var data = (List<object>)layer.TryGet("data");
                 var name = (string)layer.TryGet("name");
 
-                if (name.Equals("floor"))
+                if (name.Equals("ground"))
                 {
                     fieldInfo.Floor = data
                                       .Select(o => int.Parse(o.ToString()))
-                                      .Select(o => o == 12 ? FieldInfo.FloorNormal : 0)
+                                      .Select(o => o == 1 ? FieldInfo.FloorNormal : 0)
                                       .ToList();
                 }
                 else if (name.Equals("object"))
@@ -42,22 +44,22 @@ public static class ParseField
                                        .Select(o => int.Parse(o.ToString()))
                                        .Select(o =>
                     {
-                        if (o == 3)
+                        if (o == 11)
                         {
                             return FieldInfo.GimickWall;
                         }
 
-                        if (o == 58)
+                        if (o == 22)
                         {
                             return FieldInfo.GimickStep;
                         }
 
-                        if (o == 57)
+                        if (o == 21)
                         {
                             return FieldInfo.GimickPlayerStart;
                         }
 
-                        if (o == 49)
+                        if (o == 12)
                         {
                             return FieldInfo.GimickRedLock;
                         }
@@ -65,10 +67,19 @@ public static class ParseField
                         return 0;
                     })
                     .ToList();
-                }
-                else
-                {
-                    fieldInfo.Character = data.Select(o => int.Parse(o.ToString())).ToList();
+
+                    fieldInfo.Character = data
+                                          .Select(o => int.Parse(o.ToString()))
+                                          .Select(o =>
+                    {
+                        if (30 < o && o <= 50)
+                        {
+                            return o;
+                        }
+
+                        return 0;
+                    })
+                    .ToList();
                 }
             }
         }
@@ -77,7 +88,6 @@ public static class ParseField
             Debug.LogException(e);
         }
 
-#endif
         return fieldInfo;
     }
 
