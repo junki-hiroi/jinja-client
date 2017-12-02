@@ -35,16 +35,32 @@ public class CreateFieldScript
 
                 if (fieldInfo.Character[i] != 0)
                 {
-                    var gameObject = GameObject.Instantiate(obake);
-                    var scaleY = gameObject.transform.localScale.y;
-                    gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
-                    gameObject.transform.parent = fieldRoot.transform;
-                    characters.Add(new CharacterInfo
+                    int id = fieldInfo.Character[i] - 30;
+
+                    if (id <= 10)
                     {
-                        Id = "obake" + i,
-                        CharacterGameObject = gameObject,
-                        Position = new Vector2Int(x, y)
-                    });
+                        var gameObject = GameObject.Instantiate(obake);
+                        var scaleY = gameObject.transform.localScale.y;
+                        gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
+                        gameObject.transform.parent = fieldRoot.transform;
+                        characters.Add(new CharacterInfo
+                        {
+                            Id = "obake" + id,
+                            CharacterGameObject = gameObject,
+                            Position = new Vector2Int(x, y)
+                        });
+                    }
+                    else
+                    {
+                        var gameObject = GameObject.Instantiate(enemyPrefab);
+                        gameObject.transform.parent = fieldRoot.transform;
+                        characters.Add(new CharacterInfo
+                        {
+                            Id = "enemy" + id,
+                            CharacterGameObject = gameObject,
+                            Position = new Vector2Int(x, y)
+                        });
+                    }
                 }
 
                 if (fieldInfo.Gimick[i] == FieldInfo.GimickWall)
@@ -74,18 +90,6 @@ public class CreateFieldScript
                         var scaleY = gameObject.transform.localScale.y;
                         gameObject.transform.localPosition = new Vector3(x, scaleY / 2, -y);
                         gameObject.transform.parent = fieldRoot.transform;
-                    }
-
-                    {
-                        // TODO: 敵の配置
-                        var gameObject = GameObject.Instantiate(enemyPrefab);
-                        gameObject.transform.parent = fieldRoot.transform;
-                        characters.Add(new CharacterInfo
-                        {
-                            Id = "enemy" + i,
-                            CharacterGameObject = gameObject,
-                            Position = new Vector2Int(x - 1, y + 5)
-                        });
                     }
                 }
 
