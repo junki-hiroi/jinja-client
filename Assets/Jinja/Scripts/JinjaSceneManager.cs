@@ -5,8 +5,8 @@ namespace Jinja.Scripts
 {
 public class JinjaSceneManager
 {
-    public const int Main = 0;
-    public const int MapSelect = 1;
+    public const string Main = "Jinja/_start";
+    public const string MapSelect = "Jinja/_map_select";
 
 
     private static JinjaSceneManager _instanse = null;
@@ -30,7 +30,7 @@ public class JinjaSceneManager
         }
     }
 
-    public bool RequestLoadSceneAsync(int sceneBuildIndex, LoadSceneMode loadSceneMode)
+    public bool RequestLoadSceneAsync(string sceneName, LoadSceneMode loadSceneMode)
     {
         if (_asyncOperation != null)
         {
@@ -40,8 +40,10 @@ public class JinjaSceneManager
             }
         }
 
-        _asyncOperation = SceneManager.LoadSceneAsync(sceneBuildIndex, loadSceneMode);
+        _asyncOperation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
         return true;
     }
+
+
 }
 }
