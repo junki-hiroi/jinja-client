@@ -395,10 +395,6 @@ public class JinjaAppManager : MonoBehaviour
         {
             _playerHideTime = _playerHideTime + 1;
         }
-        else
-        {
-            _playerHideTime = _playerHideTime - 1;
-        }
 
         _playerHideTime = Clamp(_playerHideTime, 0, PlayerMaxHideTime);
 
