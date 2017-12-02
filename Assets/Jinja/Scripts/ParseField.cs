@@ -8,11 +8,13 @@ namespace Jinja.Scripts
 {
 public static class ParseField
 {
+    public static string LoadPath = "OutOfUnity/MapData/stage1.json";
+
     public static FieldInfo Load()
     {
         FieldInfo fieldInfo = new FieldInfo();
-#if UNITY_EDITOR
-        var jsonText = File.ReadAllText("OutOfUnity/MapData/stage1.json");
+
+        var jsonText = File.ReadAllText(LoadPath);
         var jsonData = MiniJSON.Json.Deserialize(jsonText);
 
         try
@@ -86,7 +88,6 @@ public static class ParseField
             Debug.LogException(e);
         }
 
-#endif
         return fieldInfo;
     }
 
