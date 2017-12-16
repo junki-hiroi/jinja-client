@@ -10,7 +10,7 @@ public class CreateFieldScript
         var obake = Resources.Load<GameObject>("Obake");
         var wall = Resources.Load<GameObject>("Wall");
         var yuka = Resources.Load<GameObject>("YukaBox");
-        var player = Resources.Load<GameObject>("Player");
+        var player = Resources.Load<GameObject>("komachan01/komachan01");
         var redLock = Resources.Load<GameObject>("LockRed");
         var stepGameObject = Resources.Load<GameObject>("Step");
         var enemyPrefab = Resources.Load<GameObject>("enemy");
